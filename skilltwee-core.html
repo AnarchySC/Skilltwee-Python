@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Learning Skill Tree - Quest Mode</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #050505;
+            background-image: 
+                radial-gradient(ellipse at top left, rgba(52, 211, 153, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e2e8f0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 3em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #34d399 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            margin: 30px 0;
+            overflow: hidden;
+            position: relative;
+            border-radius: 100px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #34d399 0%, #3b82f6 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 100px;
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
+        }
+
+        .progress-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: 600;
+            color: #94a3b8;
+            font-size: 0.9em;
+            top: -25px;
+        }
+
+        .skill-tree {
+            display: grid;
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .tier {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 25px;
+            border-radius: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tier:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .tier-title {
+            font-size: 1.3em;
+            margin-bottom: 25px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #e2e8f0;
+        }
+
+        .tier-icon {
+            background: linear-gradient(135deg, #34d399 0%, #3b82f6 100%);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: 900;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .skill {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.5), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .skill:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(52, 211, 153, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .skill:hover::before {
+            opacity: 1;
+        }
+
+        .skill.unlocked {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            animation: unlock 0.5s ease;
+        }
+
+        .skill.unlocked::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #34d399 0%, #3b82f6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .skill.locked {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+
+        @keyframes unlock {
+            0% { 
+                transform: scale(1) rotate(0deg); 
+            }
+            50% { 
+                transform: scale(1.05) rotate(1deg); 
+            }
+            100% { 
+                transform: scale(1) rotate(0deg); 
+            }
+        }
+
+        .skill-icon {
+            font-size: 2em;
+            margin-bottom: 12px;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        .skill-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-align: center;
+            font-size: 0.95em;
+            color: #e2e8f0;
+        }
+
+        .skill-desc {
+            font-size: 0.8em;
+            opacity: 0.5;
+            text-align: center;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        .skill-points {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(52, 211, 153, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            color: #34d399;
+            font-weight: 600;
+        }
+
+        .quest-indicator {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.75em;
+            color: #34d399;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+
+        .tier-1 { 
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.05) 0%, transparent 100%);
+        }
+        .tier-2 { 
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%);
+        }
+        .tier-3 { 
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
+        }
+        .tier-4 { 
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, transparent 100%);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            gap: 20px;
+        }
+
+        .stat {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #34d399 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            opacity: 0.5;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+            color: #94a3b8;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-content {
+            background: #0a0a0a;
+            background-image: 
+                radial-gradient(ellipse at top, rgba(52, 211, 153, 0.1) 0%, transparent 50%);
+            margin: 5% auto;
+            padding: 30px;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            width: 90%;
+            max-width: 600px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            animation: modalSlide 0.3s ease;
+            backdrop-filter: blur(20px);
+        }
+
+        @keyframes modalSlide {
+            from { 
+                transform: translateY(-50px) scale(0.95); 
+                opacity: 0; 
+            }
+            to { 
+                transform: translateY(0) scale(1); 
+                opacity: 1; 
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #e2e8f0;
+        }
+
+        .close {
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border-radius: 12px;
+        }
+
+        .close:hover {
+            background: rgba(52, 211, 153, 0.2);
+            border-color: rgba(52, 211, 153, 0.4);
+            color: #e2e8f0;
+        }
+
+        .quest-list {
+            margin: 20px 0;
+        }
+
+        .quest-section {
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .quest-section-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #34d399 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.1em;
+        }
+
+        .quest-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .quest-item:hover {
+            background: rgba(52, 211, 153, 0.05);
+            border-color: rgba(52, 211, 153, 0.2);
+        }
+
+        .quest-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #34d399;
+        }
+
+        .quest-text {
+            flex: 1;
+            font-size: 0.9em;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .quest-item.completed .quest-text {
+            text-decoration: line-through;
+            opacity: 0.4;
+        }
+
+        .mastery-button {
+            background: linear-gradient(135deg, #34d399 0%, #3b82f6 100%);
+            border: none;
+            color: white;
+            padding: 14px 30px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .mastery-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(52, 211, 153, 0.3);
+        }
+
+        .mastery-button:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            cursor: not-allowed;
+            color: #64748b;
+        }
+
+        .resources {
+            background: rgba(52, 211, 153, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid rgba(52, 211, 153, 0.1);
+        }
+
+        .resources-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #34d399;
+        }
+
+        .resource-link {
+            display: block;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .resource-link:before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .resource-link:hover {
+            color: #34d399;
+            padding-left: 20px;
+        }
+
+        .resource-link:hover:before {
+            transform: translateX(5px);
+        }
+
+        .help-text {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.85em;
+            opacity: 0.5;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐍 Python Developer Skill Tree</h1>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-text" id="progressText">0% Complete</div>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="unlockedCount">0</div>
+                <div class="stat-label">Skills Unlocked</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="totalCount">24</div>
+                <div class="stat-label">Total Skills</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="questsComplete">0</div>
+                <div class="stat-label">Quests Complete</div>
+            </div>
+        </div>
+
+        <div class="help-text">Click any skill to view quests and resources</div>
+
+        <div class="skill-tree">
+            <!-- Tier 1: Foundation -->
+            <div class="tier tier-1">
+                <div class="tier-title">
+                    <span class="tier-icon">LV.1</span>
+                    Foundation
+                </div>
+                <div class="skills-grid">
+                    <div class="skill" data-tier="1" data-skill="variables">
+                        <div class="skill-points">+10 XP</div>
+                        <div class="skill-icon">📦</div>
+                        <div class="skill-name">Variables & Types</div>
+                        <div class="skill-desc">int, float, str, bool, type casting</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill" data-tier="1" data-skill="operators">
+                        <div class="skill-points">+10 XP</div>
+                        <div class="skill-icon">➕</div>
+                        <div class="skill-name">Operators</div>
+                        <div class="skill-desc">Arithmetic, comparison, logical</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill" data-tier="1" data-skill="strings">
+                        <div class="skill-points">+15 XP</div>
+                        <div class="skill-icon">📝</div>
+                        <div class="skill-name">String Methods</div>
+                        <div class="skill-desc">Slicing, formatting, manipulation</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill" data-tier="1" data-skill="conditionals">
+                        <div class="skill-points">+15 XP</div>
+                        <div class="skill-icon">🔀</div>
+                        <div class="skill-name">Conditionals</div>
+                        <div class="skill-desc">if, elif, else, ternary</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill" data-tier="1" data-skill="loops">
+                        <div class="skill-points">+15 XP</div>
+                        <div class="skill-icon">🔁</div>
+                        <div class="skill-name">Loops</div>
+                        <div class="skill-desc">for, while, break, continue</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill" data-tier="1" data-skill="functions">
+                        <div class="skill-points">+15 XP</div>
+                        <div class="skill-icon">⚙️</div>
+                        <div class="skill-name">Functions</div>
+                        <div class="skill-desc">def, parameters, return, scope</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tier 2: Core Python -->
+            <div class="tier tier-2">
+                <div class="tier-title">
+                    <span class="tier-icon">LV.2</span>
+                    Core Python
+                </div>
+                <div class="skills-grid">
+                    <div class="skill locked" data-tier="2" data-skill="lists">
+                        <div class="skill-points">+20 XP</div>
+                        <div class="skill-icon">📊</div>
+                        <div class="skill-name">Lists</div>
+                        <div class="skill-desc">List methods, slicing, comprehensions</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="2" data-skill="dictionaries">
+                        <div class="skill-points">+20 XP</div>
+                        <div class="skill-icon">📚</div>
+                        <div class="skill-name">Dictionaries</div>
+                        <div class="skill-desc">Key-value pairs, methods, iteration</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="2" data-skill="tuples-sets">
+                        <div class="skill-points">+20 XP</div>
+                        <div class="skill-icon">🎯</div>
+                        <div class="skill-name">Tuples & Sets</div>
+                        <div class="skill-desc">Immutable data, unique elements</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="2" data-skill="file-io">
+                        <div class="skill-points">+25 XP</div>
+                        <div class="skill-icon">📁</div>
+                        <div class="skill-name">File I/O</div>
+                        <div class="skill-desc">Reading, writing, with statement</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="2" data-skill="error-handling">
+                        <div class="skill-points">+20 XP</div>
+                        <div class="skill-icon">⚠️</div>
+                        <div class="skill-name">Error Handling</div>
+                        <div class="skill-desc">try, except, finally, raise</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="2" data-skill="modules">
+                        <div class="skill-points">+20 XP</div>
+                        <div class="skill-icon">📦</div>
+                        <div class="skill-name">Modules & Imports</div>
+                        <div class="skill-desc">import, from, creating modules</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tier 3: Advanced Python -->
+            <div class="tier tier-3">
+                <div class="tier-title">
+                    <span class="tier-icon">LV.3</span>
+                    Advanced Python
+                </div>
+                <div class="skills-grid">
+                    <div class="skill locked" data-tier="3" data-skill="oop-basics">
+                        <div class="skill-points">+30 XP</div>
+                        <div class="skill-icon">🏗️</div>
+                        <div class="skill-name">OOP Basics</div>
+                        <div class="skill-desc">Classes, objects, __init__, self</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="3" data-skill="oop-advanced">
+                        <div class="skill-points">+30 XP</div>
+                        <div class="skill-icon">🎭</div>
+                        <div class="skill-name">OOP Advanced</div>
+                        <div class="skill-desc">Inheritance, polymorphism, encapsulation</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="3" data-skill="lambda">
+                        <div class="skill-points">+25 XP</div>
+                        <div class="skill-icon">λ</div>
+                        <div class="skill-name">Lambda & Functional</div>
+                        <div class="skill-desc">lambda, map, filter, reduce</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="3" data-skill="decorators">
+                        <div class="skill-points">+25 XP</div>
+                        <div class="skill-icon">🎁</div>
+                        <div class="skill-name">Decorators</div>
+                        <div class="skill-desc">Function decorators, @property</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="3" data-skill="generators">
+                        <div class="skill-points">+25 XP</div>
+                        <div class="skill-icon">🔄</div>
+                        <div class="skill-name">Generators</div>
+                        <div class="skill-desc">yield, generator expressions</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="3" data-skill="context-managers">
+                        <div class="skill-points">+25 XP</div>
+                        <div class="skill-icon">🔐</div>
+                        <div class="skill-name">Context Managers</div>
+                        <div class="skill-desc">with statement, __enter__, __exit__</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tier 4: Professional -->
+            <div class="tier tier-4">
+                <div class="tier-title">
+                    <span class="tier-icon">LV.4</span>
+                    Professional Skills
+                </div>
+                <div class="skills-grid">
+                    <div class="skill locked" data-tier="4" data-skill="apis">
+                        <div class="skill-points">+40 XP</div>
+                        <div class="skill-icon">🌐</div>
+                        <div class="skill-name">APIs & Requests</div>
+                        <div class="skill-desc">REST APIs, requests library, JSON</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="4" data-skill="databases">
+                        <div class="skill-points">+40 XP</div>
+                        <div class="skill-icon">💾</div>
+                        <div class="skill-name">Database Basics</div>
+                        <div class="skill-desc">SQLite, SQL queries, ORMs</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="4" data-skill="testing">
+                        <div class="skill-points">+35 XP</div>
+                        <div class="skill-icon">🧪</div>
+                        <div class="skill-name">Testing</div>
+                        <div class="skill-desc">unittest, pytest, test coverage</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="4" data-skill="async">
+                        <div class="skill-points">+45 XP</div>
+                        <div class="skill-icon">⚡</div>
+                        <div class="skill-name">Async Programming</div>
+                        <div class="skill-desc">async/await, asyncio, concurrency</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="4" data-skill="packages">
+                        <div class="skill-points">+35 XP</div>
+                        <div class="skill-icon">📦</div>
+                        <div class="skill-name">Package Management</div>
+                        <div class="skill-desc">pip, venv, requirements.txt</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                    <div class="skill locked" data-tier="4" data-skill="web-framework">
+                        <div class="skill-points">+40 XP</div>
+                        <div class="skill-icon">🚀</div>
+                        <div class="skill-name">Web Framework</div>
+                        <div class="skill-desc">Flask or Django basics</div>
+                        <div class="quest-indicator">📋 View Quests</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quest Modal -->
+    <div id="questModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">
+                    <span id="modalIcon">📦</span>
+                    <span id="modalSkillName">Skill Name</span>
+                </div>
+                <span class="close">&times;</span>
+            </div>
+            <div id="questContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const skillQuests = {
+            'variables': {
+                icon: '📦',
+                quests: {
+                    'Build Without Help': [
+                        'Create variables of different types (int, float, str, bool)',
+                        'Use type() to check variable types',
+                        'Convert between types (str to int, int to float, etc.)',
+                        'Create a program that calculates age from birth year',
+                        'Build a simple unit converter (miles to km)'
+                    ],
+                    'Understand & Explain': [
+                        'Explain dynamic typing in Python',
+                        'Know when to use each data type',
+                        'Understand variable naming conventions (snake_case)',
+                        'Explain mutable vs immutable types'
+                    ],
+                    'Common Pitfalls': [
+                        'Handle type errors when converting strings',
+                        'Understand integer division vs float division',
+                        'Avoid using reserved keywords as variable names'
+                    ]
+                },
+                resources: [
+                    { name: 'Python.org Tutorial - Variables', url: 'https://docs.python.org/3/tutorial/introduction.html' },
+                    { name: 'Real Python - Variables', url: 'https://realpython.com/python-variables/' },
+                    { name: 'W3Schools Python Variables', url: 'https://www.w3schools.com/python/python_variables.asp' }
+                ]
+            },
+            'operators': {
+                icon: '➕',
+                quests: {
+                    'Build Without Help': [
+                        'Use arithmetic operators (+, -, *, /, //, %, **)',
+                        'Compare values with comparison operators',
+                        'Combine conditions with logical operators (and, or, not)',
+                        'Build a calculator that performs basic operations',
+                        'Check if a number is even or odd using modulo'
+                    ],
+                    'Understand & Explain': [
+                        'Explain operator precedence (order of operations)',
+                        'Know the difference between / and //',
+                        'Understand how logical operators short-circuit',
+                        'Explain the difference between == and is'
+                    ],
+                    'Practice Patterns': [
+                        'Use += and other augmented assignment operators',
+                        'Chain comparison operators (a < b < c)',
+                        'Use membership operators (in, not in)'
+                    ]
+                },
+                resources: [
+                    { name: 'Python Operators Guide', url: 'https://www.programiz.com/python-programming/operators' },
+                    { name: 'Real Python - Operators', url: 'https://realpython.com/python-operators-expressions/' },
+                    { name: 'Python Docs - Expressions', url: 'https://docs.python.org/3/reference/expressions.html' }
+                ]
+            },
+            'strings': {
+                icon: '📝',
+                quests: {
+                    'Build Without Help': [
+                        'Use string slicing to extract substrings',
+                        'Format strings using f-strings',
+                        'Use common string methods (upper, lower, strip, split)',
+                        'Build a program that counts vowels in a string',
+                        'Create a simple text formatter or title converter'
+                    ],
+                    'Understand & Explain': [
+                        'Know the difference between single and triple quotes',
+                        'Understand string immutability',
+                        'Explain string indexing (including negative indices)',
+                        'Know multiple ways to format strings (.format(), f-strings, %)'
+                    ],
+                    'Real-World Tasks': [
+                        'Parse user input and clean whitespace',
+                        'Build email or phone validator',
+                        'Extract data from formatted text'
+                    ]
+                },
+                resources: [
+                    { name: 'Python String Methods', url: 'https://www.w3schools.com/python/python_ref_string.asp' },
+                    { name: 'Real Python - Strings', url: 'https://realpython.com/python-strings/' },
+                    { name: 'F-Strings Guide', url: 'https://realpython.com/python-f-strings/' }
+                ]
+            },
+            'conditionals': {
+                icon: '🔀',
+                quests: {
+                    'Build Without Help': [
+                        'Write if/elif/else statements',
+                        'Use nested conditionals appropriately',
+                        'Create a grade calculator (A-F based on score)',
+                        'Build a simple chatbot with response logic',
+                        'Use ternary operator for simple conditions'
+                    ],
+                    'Understand & Explain': [
+                        'Understand truthy and falsy values in Python',
+                        'Know when to use elif vs nested if',
+                        'Explain how Python evaluates conditions',
+                        'Understand the ternary operator syntax'
+                    ],
+                    'Best Practices': [
+                        'Avoid deeply nested conditionals',
+                        'Use early returns to simplify logic',
+                        'Combine conditions logically'
+                    ]
+                },
+                resources: [
+                    { name: 'Python if...else', url: 'https://www.programiz.com/python-programming/if-elif-else' },
+                    { name: 'Real Python - Conditionals', url: 'https://realpython.com/python-conditional-statements/' },
+                    { name: 'Python Docs - Control Flow', url: 'https://docs.python.org/3/tutorial/controlflow.html' }
+                ]
+            },
+            'loops': {
+                icon: '🔁',
+                quests: {
+                    'Build Without Help': [
+                        'Write for loops to iterate over ranges and sequences',
+                        'Use while loops with proper termination conditions',
+                        'Use break and continue effectively',
+                        'Create a multiplication table printer',
+                        'Build FizzBuzz program',
+                        'Implement a number guessing game'
+                    ],
+                    'Understand & Explain': [
+                        'Know when to use for vs while loops',
+                        'Understand enumerate() for index access',
+                        'Explain infinite loops and how to avoid them',
+                        'Know how range() works'
+                    ],
+                    'Advanced Patterns': [
+                        'Nest loops appropriately',
+                        'Use else clause with loops',
+                        'Iterate over multiple sequences with zip()'
+                    ]
+                },
+                resources: [
+                    { name: 'Python Loops Tutorial', url: 'https://www.learnpython.org/en/Loops' },
+                    { name: 'Real Python - For Loops', url: 'https://realpython.com/python-for-loop/' },
+                    { name: 'While Loop Guide', url: 'https://realpython.com/python-while-loop/' }
+                ]
+            },
+            'functions': {
+                icon: '⚙️',
+                quests: {
+                    'Build Without Help': [
+                        'Define functions with parameters and return values',
+                        'Use default parameter values',
+                        'Create functions with *args and **kwargs',
+                        'Build a library of utility functions',
+                        'Write a function that returns multiple values'
+                    ],
+                    'Understand & Explain': [
+                        'Understand function scope and global/local variables',
+                        'Know the difference between arguments and parameters',
+                        'Explain what None means as a return value',
+                        'Understand docstrings and function documentation'
+                    ],
+                    'Best Practices': [
+                        'Write pure functions when possible',
+                        'Use descriptive function names',
+                        'Keep functions focused on one task',
+                        'Add docstrings to document functions'
+                    ]
+                },
+                resources: [
+                    { name: 'Python Functions Tutorial', url: 'https://www.programiz.com/python-programming/function' },
+                    { name: 'Real Python - Functions', url: 'https://realpython.com/defining-your-own-python-function/' },
+                    { name: 'Function Best Practices', url: 'https://realpython.com/python-pass-by-reference/' }
+                ]
+            },
+            'lists': {
+                icon: '📊',
+                quests: {
+                    'Build Without Help': [
+                        'Create and modify lists (append, insert, remove)',
+                        'Use list slicing to extract sublists',
+                        'Sort lists with sort() and sorted()',
+                        'Write list comprehensions',
+                        'Find min, max, and sum of number lists'
+                    ],
+                    'Understand & Explain': [
+                        'Know which methods modify lists vs create new ones',
+                        'Understand list vs tuple differences',
+                        'Explain shallow vs deep copy',
+                        'Know when to use list comprehension vs loops'
+                    ],
+                    'Real-World Tasks': [
+                        'Filter a list based on conditions',
+                        'Remove duplicates from a list',
+                        'Flatten nested lists',
+                        'Process data from multiple lists'
+                    ]
+                },
+                resources: [
+                    { name: 'Python Lists Tutorial', url: 'https://www.programiz.com/python-programming/list' },
+                    { name: 'Real Python - Lists', url: 'https://realpython.com/python-lists-tuples/' },
+                    { name: 'List Comprehensions', url: 'https://realpython.com/list-comprehension-python/' }
+                ]
+            },
+            'dictionaries': {
+                icon: '📚',
+                quests: {
+                    'Build Without Help': [
+                        'Create dictionaries and access values by key',
+                        'Add, update, and remove dictionary items',
+                        'Iterate over keys, values, and items',
+                        'Use dictionary comprehensions',
+                        'Build a simple contact book or inventory system'
+                    ],
+                    'Understand & Explain': [
+                        'Know when to use dictionaries vs lists',
+                        'Understand dictionary methods (get, pop, update)',
+                        'Explain what happens with missing keys',
+                        'Know how to merge dictionaries'
+                    ],
+                    'Advanced Patterns': [
+                        'Use defaultdict for automatic initialization',
+                        'Count items with dictionaries',
+                        'Create nested dictionaries for complex data'
+                    ]
+                },
+                resources: [
+                    { name: 'Python Dictionaries', url: 'https://www.programiz.com/python-programming/dictionary' },
+                    { name: 'Real Python - Dictionaries', url: 'https://realpython.com/python-dicts/' },
+                    { name: 'Dict Methods Guide', url: 'https://www.w3schools.com/python/python_ref_dictionary.asp' }
+                ]
+            },
+            'tuples-sets': {
+                icon: '🎯',
+                quests: {
+                    'Build Without Help': [
+                        'Create tuples and understand their immutability',
+                        'Use tuple unpacking',
+                        'Create sets and use set operations (union, intersection)',
+                        'Remove duplicates from a list using sets',
+                        'Use named tuples for structured data'
+                    ],
+                    'Understand & Explain': [
+                        'Know when to use tuples vs lists',
+                        'Understand set properties (unique, unordered)',
+                        'Explain frozenset and when to use it',
+                        'Know tuple packing and unpacking'
+                    ],
+                    'Practical Uses': [
+                        'Return multiple values from functions using tuples',
+                        'Find common elements between collections',
+                        'Use sets for membership testing'
+                    ]
+                },
+                resources: [
+                    { name: 'Python Tuples', url: 'https://www.programiz.com/python-programming/tuple' },
+                    { name: 'Python Sets', url: 'https://www.programiz.com/python-programming/set' },
+                    { name: 'Real Python - Sets', url: 'https://realpython.com/python-sets/' }
+                ]
+            },
+            'file-io': {
+                icon: '📁',
+                quests: {
+                    'Build Without Help': [
+                        'Read text files using open() and with statement',
+                        'Write data to text files',
+                        'Append to existing files',
+                        'Read CSV files line by line',
+                        'Build a simple log file writer'
+                    ],
+                    'Understand & Explain': [
+                        'Know file modes (r, w, a, r+, etc.)',
+                        'Understand why to use with statement',
+                        'Explain text vs binary mode',
+                        'Know how to handle file paths properly'
+                    ],
+                    'Real-World Tasks': [
+                        'Process large files efficiently',
+                        'Handle file exceptions gracefully',
+                        'Work with file paths using pathlib'
+                    ]
+                },
+                resources: [
+                    { name: 'Python File I/O', url: 'https://www.programiz.com/python-programming/file-operation' },
+                    { name: 'Real Python - File I/O', url: 'https://realpython.com/read-write-files-python/' },
+                    { name: 'Working with Files', url: 'https://docs.python.org/3/tutorial/inputoutput.html#reading-and-writing-files' }
+                ]
+            },
+            'error-handling': {
+                icon: '⚠️',
+                quests: {
+                    'Build Without Help': [
+                        'Use try/except blocks to catch exceptions',
+                        'Handle specific exception types',
+                        'Use finally for cleanup code',
+                        'Raise exceptions with custom messages',
+                        'Create custom exception classes'
+                    ],
+                    'Understand & Explain': [
+                        'Know common exception types (ValueError, TypeError, etc.)',
+                        'Understand exception hierarchy',
+                        'Explain when to catch exceptions vs let them propagate',
+                        'Know the difference between errors and exceptions'
+                    ],
+                    'Best Practices': [
+                        'Catch specific exceptions, not bare except',
+                        'Use else clause with try/except',
+                        'Log errors appropriately',
+                        'Clean up resources in finally'
+                    ]
+                },
+                resources: [
+                    { name: 'Python Exceptions', url: 'https://www.programiz.com/python-programming/exception-handling' },
+                    { name: 'Real Python - Exceptions', url: 'https://realpython.com/python-exceptions/' },
+                    { name: 'Exception Handling Guide', url: 'https://docs.python.org/3/tutorial/errors.html' }
+                ]
+            },
+            'modules': {
+                icon: '📦',
+                quests: {
+                    'Build Without Help': [
+                        'Import standard library modules',
+                        'Use from...import syntax',
+                        'Create your own modules',
+                        'Organize code into packages',
+                        'Use __name__ == "__main__" pattern'
+                    ],
+                    'Understand & Explain': [
+                        'Know how Python finds modules (sys.path)',
+                        'Understand __init__.py files',
+                        'Explain relative vs absolute imports',
+                        'Know common standard library modules'
+                    ],
+                    'Practical Skills': [
+                        'Work with os and sys modules',
+                        'Use datetime for date/time operations',
+                        'Apply random module for randomness',
+                        'Use json module for JSON handling'
+                    ]
+                },
+                resources: [
+                    { name: 'Python Modules', url: 'https://www.programiz.com/python-programming/modules' },
+                    { name: 'Real Python - Modules', url: 'https://realpython.com/python-modules-packages/' },
+                    { name: 'Standard Library', url: 'https://docs.python.org/3/library/' }
+                ]
+            },
+            'oop-basics': {
+                icon: '🏗️',
+                quests: {
+                    'Build Without Help': [
+                        'Create classes with __init__ method',
+                        'Define instance methods and use self',
+                        'Create instance attributes',
+                        'Build a simple class (Car, Person, BankAccount)',
+                        'Create multiple objects from a class'
+                    ],
+                    'Understand & Explain': [
+                        'Explain what self represents',
+                        'Know the purpose of __init__',
+                        'Understand instance vs class attributes',
+                        'Explain encapsulation basics'
+                    ],
+                    'Practice Projects': [
+                        'Build a Student class with grades',
+                        'Create a Rectangle class with area/perimeter',
+                        'Make a simple game character class'
+                    ]
+                },
+                resources: [
+                    { name: 'Python OOP Tutorial', url: 'https://www.programiz.com/python-programming/object-oriented-programming' },
+                    { name: 'Real Python - OOP', url: 'https://realpython.com/python3-object-oriented-programming/' },
+                    { name: 'Classes Tutorial', url: 'https://docs.python.org/3/tutorial/classes.html' }
+                ]
+            },
+            'oop-advanced': {
+                icon: '🎭',
+                quests: {
+                    'Build Without Help': [
+                        'Implement inheritance between classes',
+                        'Override parent methods',
+                        'Use super() to call parent methods',
+                        'Implement polymorphism',
+                        'Create abstract base classes'
+                    ],
+                    'Understand & Explain': [
+                        'Explain inheritance and when to use it',
+                        'Know method resolution order (MRO)',
+                        'Understand composition vs inheritance',
+                        'Explain polymorphism with examples'
+                    ],
+                    'Advanced Concepts': [
+                        'Use class methods and static methods',
+                        'Implement magic methods (__str__, __repr__)',
+                        'Create properties with @property decorator'
+                    ]
+                },
+                resources: [
+                    { name: 'Inheritance in Python', url: 'https://www.programiz.com/python-programming/inheritance' },
+                    { name: 'Real Python - Inheritance', url: 'https://realpython.com/inheritance-composition-python/' },
+                    { name: 'Magic Methods Guide', url: 'https://rszalski.github.io/magicmethods/' }
+                ]
+            },
+            'lambda': {
+                icon: 'λ',
+                quests: {
+                    'Build Without Help': [
+                        'Write lambda functions for simple operations',
+                        'Use map() to transform sequences',
+                        'Filter lists with filter() function',
+                        'Use reduce() to aggregate values',
+                        'Sort with custom key functions'
+                    ],
+                    'Understand & Explain': [
+                        'Know when lambdas are appropriate vs regular functions',
+                        'Understand functional programming concepts',
+                        'Explain how map/filter/reduce work',
+                        'Know lambda limitations'
+                    ],
+                    'Practical Applications': [
+                        'Process data with map/filter chains',
+                        'Sort complex objects',
+                        'Use functools module'
+                    ]
+                },
+                resources: [
+                    { name: 'Lambda Functions', url: 'https://www.programiz.com/python-programming/anonymous-function' },
+                    { name: 'Real Python - Lambda', url: 'https://realpython.com/python-lambda/' },
+                    { name: 'Functional Programming', url: 'https://docs.python.org/3/howto/functional.html' }
+                ]
+            },
+            'decorators': {
+                icon: '🎁',
+                quests: {
+                    'Build Without Help': [
+                        'Use built-in decorators (@property, @staticmethod)',
+                        'Create simple function decorators',
+                        'Stack multiple decorators',
+                        'Build a timing decorator',
+                        'Create a logging decorator'
+                    ],
+                    'Understand & Explain': [
+                        'Explain how decorators work (functions as first-class objects)',
+                        'Know decorator syntax (@decorator)',
+                        'Understand functools.wraps',
+                        'Explain closure concept'
+                    ],
+                    'Advanced Patterns': [
+                        'Create decorators with arguments',
+                        'Build class decorators',
+                        'Use decorators for caching (memoization)'
+                    ]
+                },
+                resources: [
+                    { name: 'Python Decorators', url: 'https://www.programiz.com/python-programming/decorator' },
+                    { name: 'Real Python - Decorators', url: 'https://realpython.com/primer-on-python-decorators/' },
+                    { name: 'Decorator Patterns', url: 'https://python-patterns.guide/python/decorators/' }
+                ]
+            },
+            'generators': {
+                icon: '🔄',
+                quests: {
+                    'Build Without Help': [
+                        'Create generator functions with yield',
+                        'Write generator expressions',
+                        'Build infinite generators',
+                        'Create a Fibonacci generator',
+                        'Make a file line reader generator'
+                    ],
+                    'Understand & Explain': [
+                        'Know how generators save memory',
+                        'Explain lazy evaluation',
+                        'Understand generator vs list comprehension',
+                        'Know when to use generators'
+                    ],
+                    'Advanced Uses': [
+                        'Chain generators together',
+                        'Use itertools module',
+                        'Send values to generators'
+                    ]
+                },
+                resources: [
+                    { name: 'Python Generators', url: 'https://www.programiz.com/python-programming/generator' },
+                    { name: 'Real Python - Generators', url: 'https://realpython.com/introduction-to-python-generators/' },
+                    { name: 'Itertools Guide', url: 'https://realpython.com/python-itertools/' }
+                ]
+            },
+            'context-managers': {
+                icon: '🔐',
+                quests: {
+                    'Build Without Help': [
+                        'Use with statement for file handling',
+                        'Create custom context managers with __enter__ and __exit__',
+                        'Use contextlib.contextmanager decorator',
+                        'Build a timer context manager',
+                        'Create a database connection context manager'
+                    ],
+                    'Understand & Explain': [
+                        'Explain how context managers ensure cleanup',
+                        'Know when to use context managers',
+                        'Understand __enter__ and __exit__ protocol',
+                        'Explain exception handling in __exit__'
+                    ],
+                    'Practical Applications': [
+                        'Manage resources automatically',
+                        'Create temporary state changes',
+                        'Handle transactions properly'
+                    ]
+                },
+                resources: [
+                    { name: 'Context Managers', url: 'https://www.programiz.com/python-programming/context-managers' },
+                    { name: 'Real Python - Context Managers', url: 'https://realpython.com/python-with-statement/' },
+                    { name: 'Contextlib Module', url: 'https://docs.python.org/3/library/contextlib.html' }
+                ]
+            },
+            'apis': {
+                icon: '🌐',
+                quests: {
+                    'Build Without Help': [
+                        'Make GET requests with requests library',
+                        'Parse JSON responses',
+                        'Send POST requests with data',
+                        'Handle API authentication',
+                        'Build a weather app using an API'
+                    ],
+                    'Understand & Explain': [
+                        'Know REST API basics',
+                        'Understand HTTP methods (GET, POST, PUT, DELETE)',
+                        'Explain status codes (200, 404, 500)',
+                        'Know how to handle rate limiting'
+                    ],
+                    'Real Projects': [
+                        'Fetch data from a public API',
+                        'Handle API errors gracefully',
+                        'Build a CLI tool that uses an API'
+                    ]
+                },
+                resources: [
+                    { name: 'Requests Library', url: 'https://requests.readthedocs.io/' },
+                    { name: 'Real Python - APIs', url: 'https://realpython.com/python-api/' },
+                    { name: 'API Tutorial', url: 'https://realpython.com/api-integration-in-python/' }
+                ]
+            },
+            'databases': {
+                icon: '💾',
+                quests: {
+                    'Build Without Help': [
+                        'Connect to SQLite database',
+                        'Create tables and schemas',
+                        'Perform CRUD operations (Create, Read, Update, Delete)',
+                        'Write SQL queries from Python',
+                        'Build a simple todo app with database'
+                    ],
+                    'Understand & Explain': [
+                        'Know SQL basics (SELECT, INSERT, UPDATE, DELETE)',
+                        'Understand database normalization',
+                        'Explain prepared statements and SQL injection',
+                        'Know when to use ORMs vs raw SQL'
+                    ],
+                    'Advanced Topics': [
+                        'Use SQLAlchemy ORM',
+                        'Handle database migrations',
+                        'Optimize queries for performance'
+                    ]
+                },
+                resources: [
+                    { name: 'SQLite with Python', url: 'https://www.sqlitetutorial.net/sqlite-python/' },
+                    { name: 'Real Python - Databases', url: 'https://realpython.com/python-sql-libraries/' },
+                    { name: 'SQLAlchemy Tutorial', url: 'https://docs.sqlalchemy.org/en/14/tutorial/' }
+                ]
+            },
+            'testing': {
+                icon: '🧪',
+                quests: {
+                    'Build Without Help': [
+                        'Write unit tests with unittest',
+                        'Use pytest for testing',
+                        'Test functions with assertions',
+                        'Mock external dependencies',
+                        'Measure test coverage'
+                    ],
+                    'Understand & Explain': [
+                        'Know testing principles (AAA pattern)',
+                        'Understand unit vs integration tests',
+                        'Explain test-driven development (TDD)',
+                        'Know what makes a good test'
+                    ],
+                    'Best Practices': [
+                        'Write testable code',
+                        'Use fixtures for setup/teardown',
+                        'Parameterize tests',
+                        'Test edge cases'
+                    ]
+                },
+                resources: [
+                    { name: 'Pytest Tutorial', url: 'https://docs.pytest.org/en/stable/getting-started.html' },
+                    { name: 'Real Python - Testing', url: 'https://realpython.com/python-testing/' },
+                    { name: 'Unittest Guide', url: 'https://docs.python.org/3/library/unittest.html' }
+                ]
+            },
+            'async': {
+                icon: '⚡',
+                quests: {
+                    'Build Without Help': [
+                        'Write async functions with async/await',
+                        'Run asynchronous code with asyncio.run()',
+                        'Create and manage tasks',
+                        'Make concurrent HTTP requests',
+                        'Build an async web scraper'
+                    ],
+                    'Understand & Explain': [
+                        'Explain concurrency vs parallelism',
+                        'Know when async is beneficial',
+                        'Understand event loops',
+                        'Explain blocking vs non-blocking code'
+                    ],
+                    'Advanced Patterns': [
+                        'Use asyncio.gather() for multiple tasks',
+                        'Handle async context managers',
+                        'Work with async generators'
+                    ]
+                },
+                resources: [
+                    { name: 'Asyncio Tutorial', url: 'https://docs.python.org/3/library/asyncio.html' },
+                    { name: 'Real Python - Async', url: 'https://realpython.com/async-io-python/' },
+                    { name: 'Async Patterns', url: 'https://www.integralist.co.uk/posts/python-asyncio/' }
+                ]
+            },
+            'packages': {
+                icon: '📦',
+                quests: {
+                    'Build Without Help': [
+                        'Install packages with pip',
+                        'Create virtual environments with venv',
+                        'Manage requirements.txt',
+                        'Activate and deactivate virtual environments',
+                        'Freeze dependencies'
+                    ],
+                    'Understand & Explain': [
+                        'Know why virtual environments are important',
+                        'Understand pip vs conda',
+                        'Explain package versioning',
+                        'Know how to resolve dependency conflicts'
+                    ],
+                    'Professional Skills': [
+                        'Use pipenv or poetry for package management',
+                        'Create your own package',
+                        'Publish to PyPI'
+                    ]
+                },
+                resources: [
+                    { name: 'Pip Documentation', url: 'https://pip.pypa.io/en/stable/' },
+                    { name: 'Virtual Environments', url: 'https://realpython.com/python-virtual-environments-a-primer/' },
+                    { name: 'Package Guide', url: 'https://packaging.python.org/tutorials/packaging-projects/' }
+                ]
+            },
+            'web-framework': {
+                icon: '🚀',
+                quests: {
+                    'Build Without Help': [
+                        'Create a basic Flask or Django app',
+                        'Define routes and views',
+                        'Render templates',
+                        'Handle form submissions',
+                        'Build a simple CRUD web application'
+                    ],
+                    'Understand & Explain': [
+                        'Know MVC/MVT pattern',
+                        'Understand routing',
+                        'Explain request/response cycle',
+                        'Know the difference between Flask and Django'
+                    ],
+                    'Real Projects': [
+                        'Build a blog or portfolio site',
+                        'Create a REST API',
+                        'Deploy to a hosting platform'
+                    ]
+                },
+                resources: [
+                    { name: 'Flask Quickstart', url: 'https://flask.palletsprojects.com/en/2.0.x/quickstart/' },
+                    { name: 'Django Tutorial', url: 'https://docs.djangoproject.com/en/stable/intro/tutorial01/' },
+                    { name: 'Real Python - Flask', url: 'https://realpython.com/tutorials/flask/' }
+                ]
+            }
+        };
+
+        let unlockedSkills = JSON.parse(window.localStorage.getItem('pythonSkillTree')) || {};
+        let questProgress = JSON.parse(window.localStorage.getItem('pythonQuestProgress')) || {};
+        let currentSkill = null;
+
+        function initSkillTree() {
+            updateProgress();
+            restoreUnlockedSkills();
+            setupEventListeners();
+            updateQuestCount();
+        }
+
+        function setupEventListeners() {
+            document.querySelectorAll('.skill').forEach(skill => {
+                skill.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    
+                    if (this.classList.contains('locked') && !e.target.classList.contains('quest-indicator')) {
+                        return;
+                    }
+
+                    const skillId = this.dataset.skill;
+                    openQuestModal(skillId);
+                });
+            });
+
+            document.querySelector('.close').addEventListener('click', closeModal);
+            
+            window.addEventListener('click', function(e) {
+                const modal = document.getElementById('questModal');
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+        }
+
+        function openQuestModal(skillId) {
+            currentSkill = skillId;
+            const modal = document.getElementById('questModal');
+            const skillData = skillQuests[skillId];
+            
+            if (!skillData) {
+                console.error('No quest data for skill:', skillId);
+                return;
+            }
+
+            document.getElementById('modalIcon').textContent = skillData.icon;
+            const skillElement = document.querySelector(`[data-skill="${skillId}"]`);
+            document.getElementById('modalSkillName').textContent = skillElement.querySelector('.skill-name').textContent;
+
+            let questHTML = '<div class="quest-list">';
+            
+            Object.keys(skillData.quests).forEach(section => {
+                questHTML += `
+                    <div class="quest-section">
+                        <div class="quest-section-title">✅ ${section}</div>
+                `;
+                
+                skillData.quests[section].forEach((quest, index) => {
+                    const questId = `${skillId}-${section}-${index}`;
+                    const isCompleted = questProgress[questId] || false;
+                    
+                    questHTML += `
+                        <div class="quest-item ${isCompleted ? 'completed' : ''}" data-quest-id="${questId}">
+                            <input type="checkbox" class="quest-checkbox" ${isCompleted ? 'checked' : ''}>
+                            <span class="quest-text">${quest}</span>
+                        </div>
+                    `;
+                });
+                
+                questHTML += '</div>';
+            });
+
+            if (skillData.resources) {
+                questHTML += `
+                    <div class="resources">
+                        <div class="resources-title">📚 Free Learning Resources:</div>
+                `;
+                skillData.resources.forEach(resource => {
+                    questHTML += `<a href="${resource.url}" class="resource-link" target="_blank">→ ${resource.name}</a>`;
+                });
+                questHTML += '</div>';
+            }
+
+            const allQuests = getAllQuestsForSkill(skillId);
+            const completedQuests = allQuests.filter(qId => questProgress[qId]).length;
+            const isComplete = completedQuests === allQuests.length;
+            
+            questHTML += `
+                <button class="mastery-button" ${!isComplete ? 'disabled' : ''} id="masteryBtn">
+                    ${unlockedSkills[skillId] ? '✅ Skill Mastered!' : 'Mark as Mastered'} (${completedQuests}/${allQuests.length} quests)
+                </button>
+            `;
+            
+            questHTML += '</div>';
+
+            document.getElementById('questContent').innerHTML = questHTML;
+
+            document.querySelectorAll('.quest-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', handleQuestToggle);
+            });
+
+            document.getElementById('masteryBtn').addEventListener('click', handleMastery);
+
+            modal.classList.add('show');
+        }
+
+        function handleQuestToggle(e) {
+            const questItem = e.target.closest('.quest-item');
+            const questId = questItem.dataset.questId;
+            
+            questProgress[questId] = e.target.checked;
+            questItem.classList.toggle('completed', e.target.checked);
+            
+            window.localStorage.setItem('pythonQuestProgress', JSON.stringify(questProgress));
+            
+            const allQuests = getAllQuestsForSkill(currentSkill);
+            const completedQuests = allQuests.filter(qId => questProgress[qId]).length;
+            const isComplete = completedQuests === allQuests.length;
+            
+            const masteryBtn = document.getElementById('masteryBtn');
+            masteryBtn.disabled = !isComplete;
+            masteryBtn.textContent = `${unlockedSkills[currentSkill] ? '✅ Skill Mastered!' : 'Mark as Mastered'} (${completedQuests}/${allQuests.length} quests)`;
+            
+            updateQuestCount();
+        }
+
+        function getAllQuestsForSkill(skillId) {
+            const skillData = skillQuests[skillId];
+            if (!skillData) return [];
+            
+            const questIds = [];
+            Object.keys(skillData.quests).forEach(section => {
+                skillData.quests[section].forEach((_, index) => {
+                    questIds.push(`${skillId}-${section}-${index}`);
+                });
+            });
+            return questIds;
+        }
+
+        function handleMastery() {
+            const skillElement = document.querySelector(`[data-skill="${currentSkill}"]`);
+            
+            if (!unlockedSkills[currentSkill]) {
+                unlockedSkills[currentSkill] = true;
+                skillElement.classList.add('unlocked');
+            } else {
+                unlockedSkills[currentSkill] = false;
+                skillElement.classList.remove('unlocked');
+            }
+            
+            window.localStorage.setItem('pythonSkillTree', JSON.stringify(unlockedSkills));
+            updateProgress();
+            checkTierUnlocking();
+            
+            const masteryBtn = document.getElementById('masteryBtn');
+            masteryBtn.textContent = unlockedSkills[currentSkill] ? '✅ Skill Mastered!' : 'Mark as Mastered';
+        }
+
+        function closeModal() {
+            document.getElementById('questModal').classList.remove('show');
+            currentSkill = null;
+        }
+
+        function restoreUnlockedSkills() {
+            Object.keys(unlockedSkills).forEach(skillId => {
+                const skillElement = document.querySelector(`[data-skill="${skillId}"]`);
+                if (skillElement && unlockedSkills[skillId]) {
+                    skillElement.classList.add('unlocked');
+                }
+            });
+            checkTierUnlocking();
+        }
+
+        function updateProgress() {
+            const unlockedCount = Object.values(unlockedSkills).filter(v => v).length;
+            const percentage = Math.round((unlockedCount / 24) * 100);
+            
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = percentage + '% Complete';
+            document.getElementById('unlockedCount').textContent = unlockedCount;
+        }
+
+        function updateQuestCount() {
+            const totalQuests = Object.keys(questProgress).filter(k => questProgress[k]).length;
+            document.getElementById('questsComplete').textContent = totalQuests;
+        }
+
+        function checkTierUnlocking() {
+            const tiers = [1, 2, 3, 4];
+            
+            tiers.forEach((tier, index) => {
+                if (index === 0) return;
+                
+                const previousTierSkills = document.querySelectorAll(`.skill[data-tier="${tier - 1}"]`);
+                const currentTierSkills = document.querySelectorAll(`.skill[data-tier="${tier}"]`);
+                
+                const unlockedInPrevious = Array.from(previousTierSkills).filter(s => 
+                    s.classList.contains('unlocked')
+                ).length;
+                
+                const shouldUnlock = unlockedInPrevious >= Math.floor(previousTierSkills.length * 0.8);
+                
+                currentTierSkills.forEach(skill => {
+                    if (shouldUnlock) {
+                        skill.classList.remove('locked');
+                    } else {
+                        if (!skill.classList.contains('unlocked')) {
+                            skill.classList.add('locked');
+                        }
+                    }
+                });
+            });
+        }
+
+        initSkillTree();
+    </script>
+</body>
+</html>
